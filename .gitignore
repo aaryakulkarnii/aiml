@@ -1,0 +1,18 @@
+# Data files (large)
+data/raw/*.csv
+data/processed/*.csv
+*.xlsx
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+*.egg-info/
+dist/
+.env
+venv/
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
