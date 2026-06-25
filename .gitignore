@@ -3,6 +3,10 @@ data/raw/*.csv
 data/processed/*.csv
 *.xlsx
 
+# Large trained model files (>100 MB — exceeds GitHub file size limit)
+# To version large models, use Git LFS: https://git-lfs.github.com
+results/random_forest.pkl
+
 # Python
 __pycache__/
 *.py[cod]
