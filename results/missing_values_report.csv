@@ -1,0 +1,17 @@
+Column,Missing Values
+CompanyID,0
+CompanyName,0
+Industry,0
+Region,0
+Year,0
+Revenue,0
+ProfitMargin,0
+MarketCap,0
+GrowthRate,1000
+ESG_Overall,0
+ESG_Environmental,0
+ESG_Social,0
+ESG_Governance,0
+CarbonEmissions,0
+WaterUsage,0
+EnergyConsumption,0

@@ -1,0 +1,30 @@
+Feature,Mean_SHAP
+remainder__ESG_Governance,7.815946307599651
+remainder__ESG_Environmental,7.65994933886056
+remainder__ESG_Social,6.478113167893632
+remainder__Year,0.024231347764098243
+remainder__ProfitMargin,0.015232583413531306
+remainder__CarbonEmissions,0.014602531669722833
+remainder__EnergyConsumption,0.014434946859106245
+remainder__GrowthRate,0.012499306598345777
+remainder__Revenue,0.011145604318757009
+cat__Industry_Finance,0.009411368807515
+remainder__MarketCap,0.009124087766545058
+remainder__WaterUsage,0.008539001610629031
+cat__Region_Middle East,0.006019644092067943
+cat__Region_Latin America,0.00471794470384253
+cat__Industry_Energy,0.004446901207085016
+cat__Region_Africa,0.004369352391004531
+cat__Region_Europe,0.0040217956297368485
+cat__Region_Asia,0.002891191386393702
+cat__Region_North America,0.00289063108808534
+cat__Industry_Manufacturing,0.002020228771058944
+cat__Industry_Retail,0.001990968187716048
+cat__Industry_Technology,0.0016563485970693486
+cat__Market_Type_Developed,0.0014972879849546015
+cat__Industry_Consumer Goods,0.0014285069893724604
+cat__Industry_Transportation,0.0013953738704282263
+cat__Region_Oceania,0.0007517161246555449
+cat__Industry_Healthcare,0.0006305693772896806
+cat__Industry_Utilities,0.0004352880613764942
+cat__Market_Type_Emerging,0.0
