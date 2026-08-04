@@ -1,5 +1,3 @@
-<div align="center">
-
 # 🌍 Auditing Geographic Bias in AI-Driven ESG Scoring
 
 ### A SHAP-Based Explainability Analysis and Disclosure-Adjusted ESG Scoring (DAES) Framework for Rating Parity Between Global North and Global South Firms
@@ -14,8 +12,6 @@
 **Submitted to the AIML 2026 Conference — Paris, France | October 26–27, 2026**
 
 *Aarya Kulkarni · Aarya Patankar*
-
-</div>
 
 ---
 
@@ -63,105 +59,6 @@ Understanding and auditing this bias is critical for:
 
 ---
 
-## 🗂️ Repository Structure
-
-aiml/
-│
-├── 📓 notebooks/                   # Jupyter notebooks — run in order 01 → 07
-│   ├── 01_data_exploration.ipynb   # Dataset inspection, distributions, missing values
-│   ├── 02_data_cleaning.ipynb      # Imputation, type casting, Market_Type engineering
-│   ├── 03_feature_engineering.ipynb# One-hot encoding, preprocessor pipeline
-│   ├── 04_modeling_xgboost.ipynb   # XGBoost training, evaluation, feature importance
-│   ├── 05_modeling_rf_lgbm.ipynb   # Random Forest and LightGBM training and comparison
-│   ├── 06_shap_analysis.ipynb      # SHAP value computation, summary & dependence plots
-│   └── 07_fairness_evaluation.ipynb# Fairness audit by region and market type
-│
-├── 📁 data/                        # Dataset files
-│   ├── company_esg_financial_dataset.csv  # Raw dataset (11,000 firms × 16 features)
-│   ├── cleaned_esg.csv                    # Cleaned dataset (11,000 firms × 17 features)
-│   └── world_bank_governance.csv          # Macro-institutional regulatory quality indicators
-│
-├── 📁 results/                     # Model outputs, ablation metrics, and DAES predictions
-│   ├── model_comparison.csv        # RMSE, MAE, R² for all three models
-│   ├── xgboost_model.pkl           # Trained XGBoost model
-│   ├── random_forest.pkl           # Trained Random Forest model
-│   ├── lightgbm.pkl                # Trained LightGBM model
-│   ├── preprocessor.pkl            # Fitted ColumnTransformer (encoder + scaler)
-│   ├── shap_feature_importance.csv # Baseline SHAP values
-│   ├── ablation_metrics.csv        # Performance metrics without ESG sub-pillars
-│   ├── ablation_shap_importance.csv# SHAP ranking under sub-pillar ablation
-│   ├── daes_alpha_sweep.csv        # Pareto sweep grid search log (alpha_0 = 0.00 to 0.50)
-│   ├── daes_metrics.csv            # Final DAES performance metrics (alpha_0 = 0.275)
-│   ├── daes_predictions.csv        # Test-set predictions under DAES regime
-│   ├── daes_shap_importance.csv    # SHAP rankings under DAES regime
-│   ├── fairness_metrics.csv        # Per-observation predictions and group errors
-│   ├── fairness_region.csv         # Region-level ESG score and error aggregates
-│   └── fairness_markettype.csv     # Market-type-level ESG score and error aggregates
-│
-├── 📁 figures/                     # Generated publication figures (PNG)
-│   ├── shap_summary.png            # SHAP beeswarm summary plot
-│   ├── shap_bar.png                # SHAP global bar chart
-│   ├── top10_shap_features.png     # Top 10 baseline SHAP features
-│   ├── shap_carbon.png             # SHAP dependence plot — CarbonEmissions
-│   ├── shap_marketcap.png          # SHAP dependence plot — MarketCap
-│   ├── esg_region.png              # Baseline ESG score by region
-│   ├── esg_markettype.png          # Baseline ESG score by market type
-│   ├── esg_boxplot.png             # ESG score distribution (boxplot)
-│   ├── error_region.png            # Prediction error by region
-│   ├── error_markettype.png        # Prediction error by market type
-│   ├── rmse_comparison.png         # Model benchmark RMSE comparison
-│   ├── r2_comparison.png           # Model benchmark R² comparison
-│   ├── ablation_shap_bar.png       # Feature importance when sub-pillars are ablated
-│   ├── daes_pareto_frontier.png    # Pareto trade-off plot (Gap vs. RMSE over alpha_0)
-│   ├── daes_before_after.png       # Regional ESG score lift before vs. after DAES
-│   └── daes_shap_comparison.png    # Structural SHAP importance shift (Baseline vs. DAES)
-│
-├── 📄 ablation.py                  # Sub-pillar ablation modeling script
-├── 📄 daes_alpha_sweep.py          # Grid search script for DAES Pareto optimization
-├── 📄 daes.py                      # Production execution script for DAES framework
-├── 📄 stat_analysis.py             # Statistical testing script (scipy)
-├── 📄 research_report.md           # Full research paper draft and results report
-├── 📄 requirements.txt             # Python dependencies
-├── 📄 .gitignore                   # Git ignore rules
-└── 📄 README.md                    # Repository documentation
-
-
----
-
-## 🔄 Workflow
-
-Raw Dataset (11,000 firms × 16 features)
-                                 │
-                                 ▼
-                      01–03 · Data & Preprocessing
-                 Imputation, one-hot encoding, feature scaling
-                                 │
-                                 ▼
-                     04–05 · Baseline ML Modeling
-                 XGBoost, Random Forest, LightGBM benchmark
-                                 │
-                                 ▼
-                     06–07 · Explainability & Fairness
-                 SHAP value audit & regional disparity testing
-                                 │
-        ┌────────────────────────┴────────────────────────┐
-        ▼                                                 ▼
-📄 ablation.py                                 📄 daes_alpha_sweep.py
-Sub-Pillar Ablation                             Dynamic Alpha Grid Search
-Audit feature reliance without                 Find Pareto knee point between
-E, S, G sub-scores                              Gap reduction & target RMSE
-│                                                 │
-│                                                 ▼
-│                                           📄 daes.py
-│                                     Execute DAES (α₀ = 0.275)
-│                                     Generate final SHAP & predictions
-└────────────────────────┬────────────────────────┘
-▼
-stat_analysis.py & Paper
-
-
----
-
 ## ⚖️ Disclosure-Adjusted ESG Scoring (DAES)
 
 ### Framework Formulation
@@ -206,7 +103,7 @@ Running `daes_alpha_sweep.py` across $\alpha_0 \in [0.00, 0.50]$ yielded the fol
 ### 1. Installation
 
 ```bash
-git clone [https://github.com/aaryakulkarnii/aiml.git](https://github.com/aaryakulkarnii/aiml.git)
+git clone https://github.com/aaryakulkarnii/aiml.git
 cd aiml
 python -m venv .venv
 
@@ -217,8 +114,11 @@ python -m venv .venv
 source .venv/bin/activate
 
 pip install -r requirements.txt
-2. Running Core Scripts
-Bash
+```
+
+### 2. Running Core Scripts
+
+```bash
 # Step 1: Run baseline statistical hypothesis testing
 python stat_analysis.py
 
@@ -230,19 +130,36 @@ python daes_alpha_sweep.py
 
 # Step 4: Execute DAES framework at optimal setting (alpha_0 = 0.275)
 python daes.py
-📝 Citation
-Code snippet
+```
+
+---
+
+## 📝 Citation
+
+```bibtex
 @inproceedings{kulkarni2026esgbias,
   title     = {Auditing Geographic Bias in AI-Driven ESG Scoring: A SHAP-Based
                Explainability Analysis and Disclosure-Adjusted ESG Scoring (DAES) Framework},
   author    = {Patankar, Aarya and Kulkarni, Aarya},
- 
-  url       = {[https://github.com/aaryakulkarnii/aiml](https://github.com/aaryakulkarnii/aiml)}
+  url       = {https://github.com/aaryakulkarnii/aiml}
 }
-👥 Authors
-📄 License
+```
+
+---
+
+## 👥 Authors
+
+- **Aarya Patankar**
+- **Aarya Kulkarni**
+
+---
+
+## 📄 License
+
 This project is licensed under the MIT License — see the LICENSE file for details.
 
-ICAIF'26 , Milan
+---
 
-Built with ❤️ for open and equitable AI research
+**Built with ❤️ for open and equitable AI research**
+
+*ICAIF 026 — Milan, Italy*
