@@ -139,4 +139,4 @@ plt.savefig('figures/ablation_esg_region.png', dpi=300, bbox_inches='tight')
 plt.close()
 print("Saved: figures/ablation_esg_region.png")
 
-print("\n✅ Ablation complete. Check figures/ and results/ for outputs.")
+print("\n Ablation complete. Check figures/ and results/ for outputs.")
