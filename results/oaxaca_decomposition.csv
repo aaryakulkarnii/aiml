@@ -1,0 +1,5 @@
+Component,Point_Estimate,CI_2.5%,CI_97.5%,Pct_of_Total_Gap
+total_gap,16.1467,15.5824,16.6507,100.0
+explained,-0.3342,-0.6821,-0.0176,-2.1
+unexplained,16.4407,16.0576,16.7842,101.8
+interaction,0.0402,-0.0662,0.1454,0.2
