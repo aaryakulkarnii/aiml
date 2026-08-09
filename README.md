@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Jupyter](https://img.shields.io/badge/Jupyter-Notebook-F37626?style=for-the-badge&logo=jupyter&logoColor=white)](https://jupyter.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge)](LICENSE)
-[![Research](https://img.shields.io/badge/Research-AIML%202026-8B5CF6?style=for-the-badge)](https://aiml-conf.org/)
+[![Research](https://img.shields.io/badge/Research-ICAIF%202026-8B5CF6?style=for-the-badge)](https://icaif2026.org/)
 [![XAI](https://img.shields.io/badge/Explainable-AI-EC4899?style=for-the-badge)](https://shap.readthedocs.io/)
 [![ESG](https://img.shields.io/badge/Domain-ESG%20Fairness-0EA5E9?style=for-the-badge)]()
 
@@ -17,9 +17,11 @@
 
 ## 📌 Project Overview
 
-This repository contains the full end-to-end research pipeline for our paper submitted to **AIML 2026**. The project investigates whether AI-based ESG (Environmental, Social, and Governance) scoring systems encode and perpetuate geographic bias against firms from the **Global South** — particularly those in Africa, Asia, Latin America, and the Middle East — relative to firms from the **Global North** (Europe, North America, Oceania).
+This repository contains the full end-to-end research pipeline for our paper submitted to **ICAIF 2026**. The project investigates whether AI-based ESG (Environmental, Social, and Governance) scoring systems encode and perpetuate geographic bias against firms from the **Global South** — particularly those in Africa, Asia, Latin America, and the Middle East — relative to firms from the **Global North** (Europe, North America, Oceania).
 
-Beyond auditing baseline model disparities, this repository implements **Disclosure-Adjusted ESG Scoring (DAES)**, a dynamic, macro-institutional framework that leverages the World Bank Regulatory Quality Index to compute a firm's **Disclosure Infrastructure Index ($DII$)**. By scaling targets dynamically according to regional disclosure deficits, DAES systematically mitigates geographic bias while preserving predictive integrity.
+Beyond auditing baseline model disparities, this repository:
+- Uses a **Blinder-Oaxaca (1973) decomposition** to formally test how much of the North-South ESG gap is explained by legitimate covariate differences (firm size, emissions, profitability) versus unexplained by them — i.e., how much survives even after holding firm characteristics constant.
+- Implements **Disclosure-Adjusted ESG Scoring (DAES)**, a dynamic, macro-institutional correction framework that leverages real World Bank Regulatory Quality data to compute each region's **Disclosure Infrastructure Index (DII)**, and scales training targets accordingly.
 
 ---
 
@@ -32,15 +34,16 @@ This creates a structural risk: AI models trained on such scores may **learn, en
 Understanding and auditing this bias is critical for:
 - **Equitable capital allocation** — ensuring Global South firms are not systematically under-financed due to structural reporting deficits.
 - **ESG policy design** — informing how rating agencies should adapt their methodologies for emerging markets.
-- **AI accountability & Bias Mitigation** — demonstrating how XAI tools (SHAP) combined with institutional target-scaling (DAES) can audit and correct geographic bias.
+- **AI accountability & Bias Mitigation** — demonstrating how XAI tools (SHAP), formal decomposition methods (Oaxaca-Blinder), and institutional target-scaling (DAES) can jointly audit and correct geographic bias.
 
 ---
 
 ## ❓ Research Questions
 
 > 1. *Do AI-driven ESG scoring models exhibit geographic bias by systematically predicting lower scores or producing higher prediction errors for firms from the Global South compared to those from the Global North?*
-> 2. *How do feature importances shift during sub-pillar ablation when raw operational signals replace aggregated scores?*
-> 3. *Can a Disclosure-Adjusted ESG Scoring (DAES) framework dynamically shrink the Global North vs. Global South rating gap without distorting global model performance?*
+> 2. *How much of the observed North-South ESG gap is explained by legitimate differences in firm characteristics, versus unexplained by them (i.e., attributable to how firms are scored rather than what they look like)?*
+> 3. *How do feature importances shift during sub-pillar ablation when raw operational signals replace aggregated scores?*
+> 4. *Can a Disclosure-Adjusted ESG Scoring (DAES) framework, grounded in real institutional data, dynamically shrink the Global North vs. Global South rating gap without distorting global model performance?*
 
 ---
 
@@ -48,79 +51,72 @@ Understanding and auditing this bias is critical for:
 
 | Feature | Description |
 |---|---|
-| 🤖 **Multi-Model Prediction** | Baseline ESG score prediction using XGBoost, Random Forest, and LightGBM |
-| 📊 **Sub-Pillar Ablation Study** | `ablation.py` pipeline removing aggregated ESG sub-scores to audit raw feature reliance |
-| 🌐 **Institutional DII Integration** | Firm-level Disclosure Infrastructure Index ($DII$) derived from World Bank Governance indicators |
-| ⚙️ **DAES Mitigation Framework** | `daes.py` dynamic target scaling to correct institutional disclosure deficits |
-| 📈 **Pareto Hyperparameter Sweep** | `daes_alpha_sweep.py` grid search determining optimal trade-off ($\alpha_0 = 0.275$) |
-| 🔍 **SHAP Explainability** | Global feature importance (beeswarm, bar) and before/after SHAP shift analysis |
+| 🤖 **Multi-Model Prediction** | Baseline and ablation-feature ESG prediction using XGBoost, Random Forest, LightGBM, Ridge, and MLP |
+| 📊 **Sub-Pillar Ablation Study** | `ablation_shap.py` — removes aggregated ESG sub-scores to audit raw feature reliance |
+| ⚖️ **Oaxaca-Blinder Decomposition** | `oaxaca_decomposition.py` — splits the North-South gap into explained (legitimate covariates) vs. unexplained (bias) components, with bootstrap confidence intervals |
+| 🌐 **Institutional DII Integration** | `compute_dii.py` — Region-level Disclosure Infrastructure Index (DII) computed from real 2024 World Bank Worldwide Governance Indicators (not asserted) |
+| ⚙️ **DAES Mitigation Framework** | `daes.py` — dynamic target scaling to correct institutional disclosure deficits, using real computed DII |
+| 📈 **Two Independently-Derived Alphas** | `daes_alpha_sweep.py` (kneedle-verified accuracy/fairness knee, α₀ = 0.275) and `oaxaca_decomposition.py` (bias-closing target, α₀ = 0.431) |
+| 🔍 **SHAP Explainability** | Global feature importance (beeswarm, bar) and before/after SHAP shift analysis across baseline, ablation, and DAES-corrected models |
 | ⚖️ **Geographic Fairness Audit** | Disaggregated predictions across 7 regions, 2 market types, and Global North vs. South |
-| 📐 **Statistical Hypothesis Testing** | `stat_analysis.py` execution of t-tests, Mann-Whitney U, and one-way ANOVA |
+| 📐 **Statistical Hypothesis Testing** | `stat_analysis.py` — t-tests, Mann-Whitney U, and one-way ANOVA |
 
 ---
 
 ## 🗂️ Repository Structure
 
 ```
-ICAIF/
+aiml/
 │
 ├── 📓 notebooks/                   # Jupyter notebooks — run in order 01 → 07
-│   ├── 01_data_exploration.ipynb   # Dataset inspection, distributions, missing values
-│   ├── 02_data_cleaning.ipynb      # Imputation, type casting, Market_Type engineering
-│   ├── 03_feature_engineering.ipynb# One-hot encoding, preprocessor pipeline
-│   ├── 04_modeling_xgboost.ipynb   # XGBoost training, evaluation, feature importance
-│   ├── 05_modeling_rf_lgbm.ipynb   # Random Forest and LightGBM training and comparison
-│   ├── 06_shap_analysis.ipynb      # SHAP value computation, summary & dependence plots
-│   └── 07_fairness_evaluation.ipynb# Fairness audit by region and market type
+│   ├── 01_data_exploration.ipynb
+│   ├── 02_data_cleaning.ipynb
+│   ├── 03_feature_engineering.ipynb
+│   ├── 04_modeling_xgboost.ipynb
+│   ├── 05_modeling_rf_lgbm.ipynb
+│   ├── 06_shap_analysis.ipynb
+│   └── 07_fairness_evaluation.ipynb
 │
-├── 📁 data/                        # Dataset files
-│   ├── company_esg_financial_dataset.csv  # Raw dataset (11,000 firms × 16 features)
-│   ├── cleaned_esg.csv                    # Cleaned dataset (11,000 firms × 17 features)
-│   └── world_bank_governance.csv          # Macro-institutional regulatory quality indicators
+├── 📁 data/
+│   ├── company_esg_financial_dataset.csv  # Raw dataset (11,000 firms)
+│   ├── cleaned_esg.csv                    # Cleaned dataset
+│   ├── world_bank_governance.csv          # Real 2024 World Bank Regulatory Quality (222 countries)
+│   └── dii_by_region.csv                  # Region-level DII computed by compute_dii.py
 │
-├── 📁 results/                     # Model outputs, ablation metrics, and DAES predictions
-│   ├── model_comparison.csv        # RMSE, MAE, R² for all three models
-│   ├── xgboost_model.pkl           # Trained XGBoost model
-│   ├── random_forest.pkl           # Trained Random Forest model
-│   ├── lightgbm.pkl                # Trained LightGBM model
-│   ├── preprocessor.pkl            # Fitted ColumnTransformer (encoder + scaler)
-│   ├── shap_feature_importance.csv # Baseline SHAP values
-│   ├── ablation_metrics.csv        # Performance metrics without ESG sub-pillars
-│   ├── ablation_shap_importance.csv# SHAP ranking under sub-pillar ablation
-│   ├── daes_alpha_sweep.csv        # Pareto sweep grid search log (alpha_0 = 0.00 to 0.50)
-│   ├── daes_metrics.csv            # Final DAES performance metrics (alpha_0 = 0.275)
-│   ├── daes_predictions.csv        # Test-set predictions under DAES regime
-│   ├── daes_shap_importance.csv    # SHAP rankings under DAES regime
-│   ├── fairness_metrics.csv        # Per-observation predictions and group errors
-│   ├── fairness_region.csv         # Region-level ESG score and error aggregates
-│   └── fairness_markettype.csv     # Market-type-level ESG score and error aggregates
+├── 📁 results/
+│   ├── model_comparison.csv
+│   ├── shap_feature_importance.csv
+│   ├── ablation_shap_importance.csv
+│   ├── multimodal_baseline_results.csv    # 5-model comparison on ablation feature set
+│   ├── daes_alpha_sweep.csv               # Pareto sweep, alpha_0 = 0.00 to 0.50
+│   ├── daes_shap_importance.csv
+│   ├── oaxaca_decomposition.csv           # Explained/unexplained/interaction + 95% CIs
+│   ├── oaxaca_bootstrap_draws.csv         # Raw 500-iteration bootstrap draws
+│   ├── oaxaca_derived_alpha.txt           # Bias-closing alpha derivation
+│   ├── dii_old_vs_new_comparison.csv      # Provenance: hardcoded vs. computed DII
+│   ├── fairness_metrics.csv
+│   ├── fairness_region.csv
+│   └── fairness_markettype.csv
 │
-├── 📁 figures/                     # Generated publication figures (PNG)
-│   ├── shap_summary.png            # SHAP beeswarm summary plot
-│   ├── shap_bar.png                # SHAP global bar chart
-│   ├── top10_shap_features.png     # Top 10 baseline SHAP features
-│   ├── shap_carbon.png             # SHAP dependence plot — CarbonEmissions
-│   ├── shap_marketcap.png          # SHAP dependence plot — MarketCap
-│   ├── esg_region.png              # Baseline ESG score by region
-│   ├── esg_markettype.png          # Baseline ESG score by market type
-│   ├── esg_boxplot.png             # ESG score distribution (boxplot)
-│   ├── error_region.png            # Prediction error by region
-│   ├── error_markettype.png        # Prediction error by market type
-│   ├── rmse_comparison.png         # Model benchmark RMSE comparison
-│   ├── r2_comparison.png           # Model benchmark R² comparison
-│   ├── ablation_shap_bar.png       # Feature importance when sub-pillars are ablated
-│   ├── daes_pareto_frontier.png    # Pareto trade-off plot (Gap vs. RMSE over alpha_0)
-│   ├── daes_before_after.png       # Regional ESG score lift before vs. after DAES
-│   └── daes_shap_comparison.png    # Structural SHAP importance shift (Baseline vs. DAES)
+├── 📁 figures/
+│   ├── shap_summary.png / shap_bar.png / top10_shap_features.png
+│   ├── ablation_shap_bar.png / ablation_esg_region.png
+│   ├── multimodal_xgb_shap.png
+│   ├── daes_pareto_frontier.png
+│   ├── daes_before_after.png
+│   ├── daes_shap_comparison.png
+│   └── oaxaca_decomposition.png           # Explained/unexplained bar chart with 95% CIs
 │
-├── 📄 ablation.py                  # Sub-pillar ablation modeling script
-├── 📄 daes_alpha_sweep.py          # Grid search script for DAES Pareto optimization
-├── 📄 daes.py                      # Production execution script for DAES framework
+├── 📄 ablation_shap.py             # Sub-pillar ablation modeling script
+├── 📄 compute_dii.py               # Computes real region-level DII from World Bank data
+├── 📄 daes_alpha_sweep.py          # Grid search for DAES Pareto knee point
+├── 📄 daes.py                      # Production DAES execution (reads computed DII)
+├── 📄 oaxaca_decomposition.py      # Blinder-Oaxaca gap decomposition + bootstrap CIs
+├── 📄 multimodal_eval.py           # 5-model benchmark on ESG_Overall (ablation feature set)
 ├── 📄 stat_analysis.py             # Statistical testing script (scipy)
-├── 📄 research_report.md           # Full research paper draft and results report
-├── 📄 requirements.txt             # Python dependencies
-├── 📄 .gitignore                   # Git ignore rules
-└── 📄 README.md                    # Repository documentation
+├── 📄 requirements.txt
+├── 📄 .gitignore
+└── 📄 README.md
 ```
 
 ---
@@ -128,11 +124,10 @@ ICAIF/
 ## 🔄 Workflow
 
 ```
-Raw Dataset (11,000 firms × 16 features)
+Raw Dataset (11,000 firms)
                                  │
                                  ▼
                       01–03 · Data & Preprocessing
-                 Imputation, one-hot encoding, feature scaling
                                  │
                                  ▼
                      04–05 · Baseline ML Modeling
@@ -140,22 +135,26 @@ Raw Dataset (11,000 firms × 16 features)
                                  │
                                  ▼
                      06–07 · Explainability & Fairness
-                 SHAP value audit & regional disparity testing
+                 SHAP audit & regional disparity testing
                                  │
-        ┌────────────────────────┴────────────────────────┐
-        ▼                                                 ▼
-📄 ablation.py                                 📄 daes_alpha_sweep.py
-Sub-Pillar Ablation                             Dynamic Alpha Grid Search
-Audit feature reliance without                 Find Pareto knee point between
-E, S, G sub-scores                              Gap reduction & target RMSE
-│                                                 │
-│                                                 ▼
-│                                           📄 daes.py
-│                                     Execute DAES (α₀ = 0.275)
-│                                     Generate final SHAP & predictions
-└────────────────────────┬────────────────────────┘
-                         ▼
-                   stat_analysis.py & Paper
+        ┌────────────────────────┼────────────────────────┐
+        ▼                        ▼                         ▼
+📄 ablation_shap.py    📄 oaxaca_decomposition.py   📄 compute_dii.py
+Sub-Pillar Ablation     Explained vs. unexplained     Real DII from World
+                         gap decomposition             Bank governance data
+        │                        │                         │
+        │                        │                         ▼
+        │                        │                   📄 daes_alpha_sweep.py
+        │                        │                   Kneedle-verified alpha
+        │                        │                         │
+        │                        └────────────┬────────────┘
+        │                                      ▼
+        │                                📄 daes.py
+        │                        Execute DAES (α₀ = 0.275, real DII)
+        │                        Generate final SHAP & predictions
+        └──────────────────────────┬──────────────────────┘
+                                    ▼
+                       stat_analysis.py & Paper
 ```
 
 ---
@@ -164,38 +163,54 @@ E, S, G sub-scores                              Gap reduction & target RMSE
 
 ### Framework Formulation
 
-To prevent models from penalizing Global South firms for macro-institutional reporting deficits, DAES dynamically scales training targets $y_i$ using a firm-specific **Disclosure Infrastructure Index ($DII_i$)**:
-
 $$y_{\text{DAES}, i} = y_i \times \left(1 + \alpha_0 \cdot (1 - DII_i)\right)$$
 
-Where:
-* $DII_i \in [0, 1]$ represents regional regulatory quality and disclosure infrastructure derived from World Bank indicators (Global North $\approx 0.82\text{--}0.85$, Global South $\approx 0.28\text{--}0.45$).
-* $(1 - DII_i)$ represents the geographic disclosure deficit.
-* $\alpha_0$ is the global adjustment strength hyperparameter.
+Where $DII_i \in [0, 1]$ is now computed — not asserted — from real 2024 World Bank Worldwide Governance Indicators (`compute_dii.py`), aggregating country-level Regulatory Quality estimates to each of the dataset's 7 regions and min-max normalizing to a 0–1 scale.
 
-### Pareto Optimization Results ($\alpha_0$ Sweep)
+### Two Independently-Derived Values of α₀
 
-Running `daes_alpha_sweep.py` across $\alpha_0 \in [0.00, 0.50]$ yielded the following Pareto frontier (`figures/daes_pareto_frontier.png`):
+DAES requires choosing how aggressively to correct. We report two, from two different criteria, rather than asserting one:
 
-| Hyperparameter ($\alpha_0$) | RMSE ↑ | North Mean | South Mean | Signed Gap (N-S) ↓ | Bias Reduction |
+| Method | α₀ | Criterion |
+|---|---|---|
+| **Kneedle algorithm** (Satopaa et al., 2011) on the RMSE-vs-α sweep | **0.275** | Statistical: the point where further correction starts costing disproportionately more model fit |
+| **Blinder-Oaxaca decomposition** | **0.431** | Normative: the value that closes the *entire* unexplained (bias-attributable) portion of the gap |
+
+We adopt **α₀ = 0.275** as the conservative operating value and report 0.431 as the theoretical upper bound, discussing the trade-off explicitly rather than picking one silently.
+
+### Pareto Optimization Results (α₀ Sweep)
+
+| α₀ | RMSE ↑ | North Mean | South Mean | Signed Gap (N–S) ↓ | Bias Reduction |
 |:---:|:---:|:---:|:---:|:---:|:---:|
-| **0.000 (Baseline)** | 8.66 | 62.95 | 47.51 | +15.44 | 0.0% |
-| **0.150** | 9.29 | 64.55 | 51.82 | +12.73 | -17.6% |
-| **0.275 (Optimal Knee)** ⭐ | **10.57** | **65.88** | **55.51** | **+10.38** | **-32.8%** |
-| **0.500 (Aggressive)** | 14.41 | 68.40 | 62.08 | +6.32 | -59.1% |
+| 0.000 (Baseline) | 8.66 | 62.95 | 47.51 | +15.44 | 0.0% |
+| 0.150 | 9.29 | 64.55 | 51.82 | +12.73 | -17.6% |
+| **0.275 (Kneedle Knee)** ⭐ | 10.57 | 65.88 | 55.51 | +10.38 | -32.8% |
+| 0.500 (Aggressive) | 14.41 | 68.40 | 62.08 | +6.32 | -59.1% |
 
-**⭐ Optimal Crossover Point ($\alpha_0 = 0.275$):**
-* **Geographic Gap Reduction:** Shrinks the North-South disparity from **$+15.44$** to **$+10.38$** (a **~33% reduction in geographic bias**).
-* **Global South Lift:** Global South scores receive a substantial **$+8.00$ point average boost** ($47.51 \rightarrow 55.51$) compared to a modest **$+2.93$ point adjustment** for Global North firms ($62.95 \rightarrow 65.88$).
+---
+
+## ⚖️ Blinder-Oaxaca Gap Decomposition
+
+Before assuming the full North-South gap is bias, we test it. Fitting separate OLS models per group on real covariates (Revenue, ProfitMargin, MarketCap, GrowthRate, CarbonEmissions, WaterUsage, EnergyConsumption, Industry — deliberately excluding ESG sub-scores and Region/Market_Type to avoid circularity), we decompose the gap and bootstrap 500 firm-level resamples for confidence intervals:
+
+| Component | Point Estimate | 95% CI | % of Total Gap |
+|---|---:|---:|---:|
+| **Total gap** | 16.15 | [15.58, 16.65] | 100.0% |
+| **Explained** (legitimate covariates) | -0.33 | [-0.68, -0.02] | -2.1% |
+| **Unexplained** (bias) | 16.44 | [16.06, 16.78] | 101.8% |
+| Interaction | 0.04 | [-0.07, 0.15] | 0.2% |
+
+**Interpretation:** essentially none of the North-South gap is explained by real business fundamentals in this dataset — firms that look identical on paper still score differently by region. This result is only as strong as the covariates tested; it is evidence *consistent with* bias, not proof of it (see Limitations).
 
 ---
 
 ## 📊 Summary of Key Findings
 
-1. **LightGBM performs best on raw targets** (RMSE = 0.6229, R² = 0.9984), slightly outperforming XGBoost and Random Forest.
-2. **A 15-point baseline gap exists** between Developed (62.90) and Emerging (47.95) markets ($p < 0.0001$).
-3. **Sub-pillar scores mask geographic proxies:** In baseline models, aggregated ESG sub-scores account for >99% of SHAP weight. When sub-scores are ablated (`ablation.py`), model reliance shifts heavily onto geographic, financial, and operational proxies.
-4. **DAES successfully closes the disparity gap:** Setting $\alpha_0 = 0.275$ in `daes.py` closes the geographic score gap by 32.8% while preserving model stability.
+1. **A 16.15-point baseline gap exists** between Global North and Global South firms (p < 0.0001), and the Blinder-Oaxaca decomposition shows this gap is not explained by legitimate covariate differences.
+2. **Sub-pillar scores mask geographic proxies:** in baseline models, aggregated ESG sub-scores dominate SHAP weight; ablating them shifts model reliance onto `Market_Type`, which becomes the #1 SHAP feature.
+3. **DAES correction reduces reliance on geography as a mechanism, not just on paper:** after DAES-correcting the training target, `Market_Type` SHAP importance drops from 8.10 (ablation, uncorrected) to 5.47 (post-correction), falling behind real financial signals — direct mechanistic evidence the correction changes what the model actually learns.
+4. **Random Forest slightly outperforms XGBoost** on the ablation (no-sub-score) feature set (R² = 0.731 vs. 0.675); Ridge (0.320) and MLP (0.599) lag behind both tree ensembles — reported honestly rather than assuming XGBoost wins by default.
+5. **DAES at α₀ = 0.275 closes 32.8% of the gap**; a formally-derived α₀ = 0.431 would close the full Oaxaca-identified unexplained component, at a higher RMSE cost.
 
 ---
 
@@ -208,7 +223,6 @@ git clone https://github.com/aaryakulkarnii/aiml.git
 cd aiml
 python -m venv .venv
 
-# Activate environment
 # Windows:
 .venv\Scripts\activate
 # macOS/Linux:
@@ -217,21 +231,38 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Running Core Scripts
+### 2. Running Core Scripts (in order)
 
 ```bash
-# Step 1: Run baseline statistical hypothesis testing
+# Step 1: Baseline statistical hypothesis testing
 python stat_analysis.py
 
-# Step 2: Run sub-pillar ablation study
-python ablation.py
+# Step 2: Sub-pillar ablation study
+python ablation_shap.py
 
-# Step 3: Run DAES hyperparameter grid search (Generates Pareto plot)
+# Step 3: Multi-model benchmark on ablation feature set
+python multimodal_eval.py
+
+# Step 4: Blinder-Oaxaca gap decomposition
+python oaxaca_decomposition.py
+
+# Step 5: Compute real region-level DII from World Bank data
+python compute_dii.py
+
+# Step 6: DAES hyperparameter sweep (generates Pareto plot)
 python daes_alpha_sweep.py
 
-# Step 4: Execute DAES framework at optimal setting (alpha_0 = 0.275)
+# Step 7: Execute DAES framework at operating alpha (0.275)
 python daes.py
 ```
+
+---
+
+## ⚠️ Limitations
+
+- **"Unexplained" is not proof of bias.** The Oaxaca-Blinder decomposition is only as good as the covariates tested. A legitimate driver of the gap not present in this dataset (e.g. disclosure completeness, reporting lag) would also register as "unexplained." Future work should test additional covariates directly rather than relying on Region as a catch-all proxy.
+- **Dataset scope.** Analysis relies on a single firm-level dataset; validation against independently disclosed real-world ESG scores (e.g. MSCI, Sustainalytics) is left to future work.
+- **Region-level, not firm-level, DII.** DII is computed and applied at the regional level; a firm-level DII using each company's actual headquarters country would be a natural extension.
 
 ---
 
@@ -242,6 +273,9 @@ python daes.py
   title     = {Auditing Geographic Bias in AI-Driven ESG Scoring: A SHAP-Based
                Explainability Analysis and Disclosure-Adjusted ESG Scoring (DAES) Framework},
   author    = {Patankar, Aarya and Kulkarni, Aarya},
+  booktitle = {Proceedings of the 7th ACM International Conference on AI in Finance (ICAIF 2026)},
+  year      = {2026},
+  address   = {Milan, Italy},
   url       = {https://github.com/aaryakulkarnii/aiml}
 }
 ```
