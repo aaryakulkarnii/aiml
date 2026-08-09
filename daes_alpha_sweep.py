@@ -7,20 +7,37 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from sklearn.preprocessing import LabelEncoder
 
-# ── 1. LOAD DATA & VERIFIED DII MAPPING ─────────────────────────
+# ── 1. LOAD DATA & DII MAPPING (computed from real World Bank data) ──
+# Same loading logic as daes.py: DII comes from data/dii_by_region.csv,
+# produced by compute_dii.py from real 2024 World Bank Worldwide
+# Governance Indicators (Regulatory Quality, -2.5 to +2.5 scale),
+# aggregated to region level and min-max normalized to 0-1.
+#
+# This REPLACES the previous hardcoded 7-value dii_region_map in this
+# file, which used different numbers than daes.py's DII source despite
+# both scripts claiming to model the same correction. Run
+# `python compute_dii.py` first if data/dii_by_region.csv is missing.
 df = pd.read_csv('cleaned_esg.csv')
 
-dii_region_map = {
-    'Europe': 0.82,
-    'North America': 0.85,
-    'Oceania': 0.83,
-    'Asia': 0.45,
-    'Latin America': 0.41,
-    'Middle East': 0.38,
-    'Africa': 0.28
-}
+DII_PATH = 'data/dii_by_region.csv'
+if not os.path.exists(DII_PATH):
+    raise FileNotFoundError(
+        f"{DII_PATH} not found. Run `python compute_dii.py` first to "
+        "compute region-level DII from data/world_bank_governance.csv."
+    )
+dii_lookup = pd.read_csv(DII_PATH).set_index('Region')['DII']
 
-df['DII'] = df['Region'].map(dii_region_map).fillna(0.5)
+df['DII'] = df['Region'].map(dii_lookup)
+if df['DII'].isna().any():
+    missing = df.loc[df['DII'].isna(), 'Region'].unique().tolist()
+    raise ValueError(
+        f"No computed DII value for region(s): {missing}. "
+        "Check data/dii_by_region.csv covers all regions in cleaned_esg.csv."
+    )
+
+print("── DII values used in this sweep (data/dii_by_region.csv) ──")
+print(dii_lookup.sort_values(ascending=False))
+print()
 
 # ── 2. FEATURE DEFINITIONS & PREPROCESSING ───────────────────────
 FEATURES = [
@@ -59,22 +76,21 @@ print("  DYNAMIC DAES ALPHA SWEEP (MACRO DII DEFICIT ADJUSTMENT)  ")
 print("=" * 75)
 
 for alpha_0 in alpha_range:
-    # Scale targets directly by regional institutional deficit (1 - DII)
     firm_alpha_train = alpha_0 * (1 - dii_train)
     y_train_daes = y_train * (1 + firm_alpha_train)
-    
+
     model = XGBRegressor(n_estimators=200, max_depth=6, learning_rate=0.1, random_state=42)
     model.fit(X_train, y_train_daes)
-    
+
     y_pred = model.predict(X_test)
-    
+
     rmse = np.sqrt(mean_squared_error(y_test, y_pred))
     mae  = mean_absolute_error(y_test, y_pred)
-    
+
     north_mean = y_pred[~south_test].mean()
     south_mean = y_pred[south_test].mean()
     signed_gap = north_mean - south_mean
-    
+
     sweep_results.append({
         "alpha_0": alpha_0,
         "RMSE": rmse,
@@ -84,7 +100,7 @@ for alpha_0 in alpha_range:
         "Signed_Gap": signed_gap,
         "Abs_Gap": abs(signed_gap)
     })
-    
+
     print(f"Alpha_0: {alpha_0:.3f} | RMSE: {rmse:.4f} | North: {north_mean:.2f} | South: {south_mean:.2f} | Gap (N-S): {signed_gap:+.4f}")
 
 sweep_df = pd.DataFrame(sweep_results)
@@ -102,7 +118,7 @@ ax1.plot(sweep_df['alpha_0'], sweep_df['Signed_Gap'], color=color, marker='o', l
 ax1.axhline(0, color='black', linestyle=':', linewidth=1.5, label='Parity Line (0 Gap)')
 ax1.tick_params(axis='y', labelcolor=color)
 
-ax2 = ax1.twinx()  
+ax2 = ax1.twinx()
 color = 'tab:red'
 ax2.set_ylabel('RMSE against Raw ESG Target', color=color, fontsize=12)
 ax2.plot(sweep_df['alpha_0'], sweep_df['RMSE'], color=color, marker='s', linestyle='--', linewidth=2, label='RMSE')
