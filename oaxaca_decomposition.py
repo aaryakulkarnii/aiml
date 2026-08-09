@@ -190,11 +190,19 @@ south_mean = float(y_full[group == 'South'].mean())
 # South mean by exactly unexplained_gap points (i.e. closes only the
 # bias-attributable portion of the gap, leaving the explained portion
 # -- which reflects real covariate differences -- untouched).
-dii_region_map = {
-    'Europe': 0.82, 'North America': 0.85, 'Oceania': 0.83,
-    'Asia': 0.45, 'Latin America': 0.41, 'Middle East': 0.38, 'Africa': 0.28
-}
-df['DII'] = df['Region'].map(dii_region_map)
+#
+# DII values are read from data/dii_by_region.csv, computed by
+# compute_dii.py from real World Bank Regulatory Quality data (NOT a
+# hardcoded dictionary -- see compute_dii.py for the derivation).
+# Run `python compute_dii.py` first if this file does not exist yet.
+DII_PATH = 'data/dii_by_region.csv'
+if not os.path.exists(DII_PATH):
+    raise FileNotFoundError(
+        f"{DII_PATH} not found. Run `python compute_dii.py` first to "
+        "compute region-level DII from data/world_bank_governance.csv."
+    )
+dii_lookup = pd.read_csv(DII_PATH).set_index('Region')['DII']
+df['DII'] = df['Region'].map(dii_lookup)
 south_mean_dii = float(df.loc[df['GeoGroup'] == 'South', 'DII'].mean())
 
 # south_mean * alpha * (1 - mean_DII) = unexplained_gap  =>  solve alpha
