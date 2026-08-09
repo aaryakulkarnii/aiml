@@ -8,20 +8,31 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.preprocessing import LabelEncoder
 import shap
 
-# ── 1. LOAD DATA & VERIFIED DII MAPPING ─────────────────────────
+# ── 1. LOAD DATA & DII MAPPING (computed from real World Bank data) ──
 df = pd.read_csv('cleaned_esg.csv')
 
-dii_region_map = {
-    'Europe': 0.82,
-    'North America': 0.85,
-    'Oceania': 0.83,
-    'Asia': 0.45,
-    'Latin America': 0.41,
-    'Middle East': 0.38,
-    'Africa': 0.28
-}
+# DII is computed by compute_dii.py from real 2024 World Bank Worldwide
+# Governance Indicators (Regulatory Quality, -2.5 to +2.5 scale),
+# aggregated to region level and min-max normalized to 0-1. Run
+# `python compute_dii.py` first to (re)generate data/dii_by_region.csv.
+# This REPLACES a previous version of this script that used a hand-
+# picked 7-value dictionary not derived from any data file, despite
+# world_bank_governance.csv being present in the repo.
+DII_PATH = 'data/dii_by_region.csv'
+if not os.path.exists(DII_PATH):
+    raise FileNotFoundError(
+        f"{DII_PATH} not found. Run `python compute_dii.py` first to "
+        "compute region-level DII from data/world_bank_governance.csv."
+    )
+dii_lookup = pd.read_csv(DII_PATH).set_index('Region')['DII']
 
-df['DII'] = df['Region'].map(dii_region_map).fillna(0.5)
+df['DII'] = df['Region'].map(dii_lookup)
+if df['DII'].isna().any():
+    missing = df.loc[df['DII'].isna(), 'Region'].unique().tolist()
+    raise ValueError(
+        f"No computed DII value for region(s): {missing}. "
+        "Check data/dii_by_region.csv covers all regions in cleaned_esg.csv."
+    )
 
 # ── 2. FEATURE DEFINITIONS ───────────────────────────────────────
 FEATURES = [
@@ -34,8 +45,21 @@ TARGET = 'ESG_Overall'
 north_regions = ['Europe', 'North America', 'Oceania']
 df['is_global_south'] = ~df['Region'].isin(north_regions)
 
-# ── 3. DYNAMIC DAES CORRECTION (α₀ = 0.20) ───────────────────────
-# Set OPTIMAL_ALPHA_0 based on your sweep results (0.20 is standard)
+# ── 3. DYNAMIC DAES CORRECTION ────────────────────────────────────
+# alpha_0 = 0.275 is the accuracy-fairness knee point on the RMSE-vs-
+# alpha sweep (results/daes_alpha_sweep.csv), verified with the kneedle
+# algorithm (Satopaa et al. 2011) -- see daes_alpha_sweep.py. This is
+# the CONSERVATIVE operating value: it closes most of the gap while
+# limiting RMSE degradation.
+#
+# For reference, oaxaca_decomposition.py independently derives
+# alpha_0 = 0.431 (computed using the same real World Bank-derived DII
+# values as above) as the value that would close the ENTIRE unexplained
+# (bias-attributable) component of the North-South gap, per a Blinder-
+# Oaxaca (1973) decomposition. The two values disagree because closing
+# the full unexplained gap costs more model RMSE than the kneedle-
+# optimal point considers worthwhile -- see results/oaxaca_derived_alpha.txt
+# and the paper's Discussion section for this trade-off.
 OPTIMAL_ALPHA_0 = 0.275
 
 firm_alpha = OPTIMAL_ALPHA_0 * (1 - df['DII'])
