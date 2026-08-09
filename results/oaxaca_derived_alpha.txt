@@ -2,4 +2,4 @@ unexplained_gap=16.4407
 total_gap=16.1467
 explained_gap=-0.3342
 interaction_gap=0.0402
-principled_alpha_0=0.5587
+principled_alpha_0=0.4307
